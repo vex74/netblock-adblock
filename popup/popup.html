@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>净网 AdBlock</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body data-theme="light">
+  <header class="hd">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">净</span>
+      <div>
+        <div class="brand-name" data-i18n="appName">净网 AdBlock</div>
+        <div class="brand-sub" id="hostLabel">当前站点</div>
+      </div>
+    </div>
+    <button id="masterToggle" class="switch" role="switch" aria-checked="true">
+      <span class="knob"></span>
+    </button>
+  </header>
+  <section class="site-row">
+    <div>
+      <div class="row-title" data-i18n="thisSite">此站点</div>
+      <div class="row-desc" id="siteStatus">已开启拦截</div>
+    </div>
+    <button id="siteToggle" class="btn-ghost" data-i18n="allowSite">临时放行</button>
+  </section>
+  <section class="site-row">
+    <div>
+      <div class="row-title" data-i18n="pickerTitle">点选屏蔽</div>
+      <div class="row-desc" data-i18n="pickerDesc">在页面上点击要隐藏的元素</div>
+    </div>
+    <button id="pickerBtn" class="btn-ghost" data-i18n="pickerStart">开始选择</button>
+  </section>
+  <section class="block">
+    <div class="row-title" data-i18n="intensity">拦截强度</div>
+    <div class="seg" id="intensitySeg">
+      <button data-v="lenient" data-i18n="lenient">宽松</button>
+      <button data-v="balanced" class="active" data-i18n="balanced">均衡</button>
+      <button data-v="aggressive" data-i18n="aggressive">激进</button>
+    </div>
+    <div class="row-desc" id="intensityDesc"></div>
+  </section>
+  <section class="block stats">
+    <div class="row-title" data-i18n="totalBlocked">累计拦截</div>
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-num" id="statReq">0</div><div class="stat-label" data-i18n="networkReq">网络请求</div></div>
+      <div class="stat"><div class="stat-num" id="statEl">0</div><div class="stat-label" data-i18n="hiddenEl">页面元素</div></div>
+      <div class="stat"><div class="stat-num" id="statDomains">0</div><div class="stat-label" data-i18n="protectedSites">已守护站点</div></div>
+    </div>
+  </section>
+  <footer class="ft">
+    <button id="openOptions" class="btn-primary"><span data-i18n="openFullSettings">打开完整设置</span><span class="arrow">→</span></button>
+  </footer>
+  <script src="../lib/constants.js"></script>
+  <script src="../lib/i18n.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
