@@ -34,17 +34,35 @@ async function syncRules() {
   } catch (_) {}
 }
 
+function formatBadgeNum(n) {
+  n = Number(n) || 0;
+  if (n <= 0) return "";
+  if (n < 100) return String(n);
+  if (n < 1000) return String(n);
+  if (n < 10000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+  return (n / 10000).toFixed(1).replace(/\.0$/, "") + "w";
+}
+
 async function updateBadge(tabId, settings) {
   if (!tabId || tabId < 0) return;
-  let text = "", color = "#0d9488";
+  let text = "";
+  let color = "#134e4a";
   try {
-    if (!settings.enabled) { text = "off"; color = "#9ca3af"; }
-    else {
+    if (!settings.enabled) {
+      text = "off";
+      color = "#64748b";
+    } else {
       const tab = await chrome.tabs.get(tabId);
       if (tab && tab.url) {
         const host = safeHost(tab.url);
         if (host && settings.whitelist.some((d) => host === d || host.endsWith("." + d))) {
-          text = "白"; color = "#d97706";
+          text = "白";
+          color = "#b45309";
+        } else if (host && settings.stats && settings.stats.byDomain) {
+          const s = settings.stats.byDomain[host];
+          const total = s ? (s.requests || 0) + (s.elements || 0) : 0;
+          text = formatBadgeNum(total);
+          color = "#134e4a";
         }
       }
     }
@@ -53,7 +71,9 @@ async function updateBadge(tabId, settings) {
   } catch (_) {}
 }
 
-function safeHost(url) { try { return new URL(url).hostname; } catch (_) { return null; } }
+function safeHost(url) {
+  try { return new URL(url).hostname; } catch (_) { return null; }
+}
 
 chrome.webRequest.onErrorOccurred.addListener(
   (details) => {
@@ -108,8 +128,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           const sel = (msg.selector || "").trim();
           if (!sel) { sendResponse({ ok: false }); break; }
           const settings = await NetBlockStorage.get();
-          if (settings.customHideSelectors.includes(sel)) { sendResponse({ ok: true, existed: true }); break; }
-          const next = await NetBlockStorage.set({ customHideSelectors: [...settings.customHideSelectors, sel] });
+          if (settings.customHideSelectors.includes(sel)) {
+            sendResponse({ ok: true, existed: true });
+            break;
+          }
+          const next = await NetBlockStorage.set({
+            customHideSelectors: [...settings.customHideSelectors, sel]
+          });
           sendResponse({ ok: true, settings: next });
           break;
         }
@@ -117,15 +142,16 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
           const { host, whitelisted, tabId } = msg;
           const settings = await NetBlockStorage.get();
           let wl = [...settings.whitelist];
-          if (whitelisted) wl = wl.filter((d) => d !== host);
-          else if (!wl.includes(host)) wl.push(host);
+          if (whitelisted) { wl = wl.filter((d) => d !== host); }
+          else { if (!wl.includes(host)) wl.push(host); }
           const next = await NetBlockStorage.set({ whitelist: wl });
           await syncRules();
           if (tabId) { try { await chrome.tabs.reload(Number(tabId)); } catch (_) {} }
           sendResponse({ ok: true, settings: next });
           break;
         }
-        default: sendResponse({ ok: false, error: "unknown type" });
+        default:
+          sendResponse({ ok: false, error: "unknown type" });
       }
     } catch (e) {
       sendResponse({ ok: false, error: String(e && e.message || e) });
@@ -135,14 +161,17 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 });
 
 chrome.storage.onChanged.addListener(() => { syncRules(); });
+
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete") {
     const settings = await NetBlockStorage.get();
     updateBadge(tabId, settings);
   }
 });
+
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   const settings = await NetBlockStorage.get();
   updateBadge(tabId, settings);
 });
+
 syncRules();

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "净网 AdBlock · 个性化广告拦截",
   "short_name": "净网",
-  "version": "1.4.2",
+  "version": "1.5.1",
   "description": "轻量、可个性化的浏览器广告拦截扩展：三档强度、自定义规则、域名白名单、拦截统计、外观主题。",
   "icons": {
     "16": "icons/icon-16.png",
